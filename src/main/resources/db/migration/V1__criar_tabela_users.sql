@@ -1,0 +1,9 @@
+CREATE TABLE users (
+    id BIGSERIAL NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT pk_users PRIMARY KEY(id),
+    CONSTRAINT pk_user_email UNIQUE(email)
+);

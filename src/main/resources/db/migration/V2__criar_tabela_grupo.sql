@@ -1,0 +1,8 @@
+CREATE TABLE grupo (
+    id BIGSERIAL NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT pk_grupo PRIMARY KEY(id),
+    CONSTRAINT chk_status   CHECK (status IN ('ATIVO', 'ARQUIVADO'))
+);
