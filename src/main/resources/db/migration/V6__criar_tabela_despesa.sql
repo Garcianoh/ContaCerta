@@ -2,7 +2,7 @@ CREATE TABLE despesa (
     id BIGSERIAL NOT NULL,
     descricao VARCHAR(255) NOT NULL,
     valor_total NUMERIC(15, 3) NOT NULL,
-    data_despesa TIMESTAMPTZ NOT NULL,
+    data_despesa DATE NOT NULL,
     data_criacao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
     grupo_id BIGINT NOT NULL,
     pagador_id BIGINT NOT NULL,
