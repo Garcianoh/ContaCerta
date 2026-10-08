@@ -4,11 +4,13 @@ package minha.contaCerta.Service;
 import minha.contaCerta.repository.RefreshTokenRepository;
 import minha.contaCerta.repository.UserRepository;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -27,17 +29,23 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final RateLimitService rateLimitService;
+
+    private static final int MAX_TENTATIVAS_LOGIN = 5;
+    private static final Duration TEMPO_BLOQUEIO_LOGIN = Duration.ofMinutes(15);
 
     public AuthService(
         RefreshTokenRepository refreshTokenRepository, 
         AuthenticationManager authenticationManager, 
         UserRepository userRepository,
-        JwtService jwtService
+        JwtService jwtService,
+        RateLimitService rateLimitService
     ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.rateLimitService = rateLimitService;
     }
 
     public void logout (LogouRequest request) {
@@ -49,6 +57,23 @@ public class AuthService {
     }
 
     public LoginResponse login (LoginRequest request) {
+        String chave = "login:" + request.email();
+
+        if (rateLimitService.estaBloqueado(chave, MAX_TENTATIVAS_LOGIN)) {
+            throw new BusinessException("Conta temporariamente bloqueiada. Tente novamente mas tarde", HttpStatus.TOO_MANY_REQUESTS);
+        }
+
+        try {
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.senha())
+            );
+        } catch (BadCredentialsException e) {
+            rateLimitService.registrarTentativa(chave, MAX_TENTATIVAS_LOGIN, TEMPO_BLOQUEIO_LOGIN, "Conta temporariamente bloqueiada. Tente novamente mais tarde");
+            throw e;
+        }
+
+        rateLimitService.limpar(chave);
+
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.email(), request.senha())
         );

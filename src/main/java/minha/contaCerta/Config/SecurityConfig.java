@@ -34,7 +34,7 @@ public class SecurityConfig {
                     "/users/register",
                     "/auth/login",
                     "/auth/refresh-token",
-                    "/auth/forgot-passwprd",
+                    "/auth/forgot-password",
                     "/auth/validate-code",
                     "/auth/reset-password"
                 ).permitAll()
